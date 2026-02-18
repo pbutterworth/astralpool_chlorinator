@@ -1,27 +1,23 @@
 """The Astral Pool Viron eQuilibrium Chlorinator BLE integration."""
+
 from __future__ import annotations
 
 import logging
-from pychlorinator.chlorinator import ChlorinatorAPI
+
 from bleak_retry_connector import get_device
+from pychlorinator.chlorinator import ChlorinatorAPI
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    Platform,
-)
-from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.const import (
-    CONF_ADDRESS,
-    CONF_ACCESS_TOKEN,
-)
+from homeassistant.const import CONF_ACCESS_TOKEN, CONF_ADDRESS, Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .coordinator import ChlorinatorDataUpdateCoordinator
 from .const import DOMAIN
+from .coordinator import ChlorinatorDataUpdateCoordinator
 from .models import ChlorinatorData
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT, Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -37,6 +33,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady(
             f"Could not find chlorinator device with address {address}"
         )
+
+    _LOGGER.debug("async_setup_entry address:  %s accesscode %s", address, accesscode)
 
     chlorinator = ChlorinatorAPI(ble_device, accesscode)
     coordinator = ChlorinatorDataUpdateCoordinator(hass, chlorinator)
@@ -54,5 +52,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    await hass.config_entries.async_forward_entry_unload(entry, PLATFORMS)
-    return True
+    unload_ok = True
+    for platform in PLATFORMS:
+        if not await hass.config_entries.async_forward_entry_unload(entry, platform):
+            unload_ok = False
+
+    return unload_ok
