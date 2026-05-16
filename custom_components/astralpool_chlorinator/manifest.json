@@ -9,7 +9,7 @@
   "codeowners": [
     "@pbutterworth"
   ],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": [
     "bluetooth_adapters"
   ],
@@ -21,5 +21,5 @@
     "bluetooth-data-tools>=0.4.0",
     "pychlorinator>=0.2.14b2"
   ],
-  "version": "0.1.13b1"
+  "version": "0.1.14"
 }
