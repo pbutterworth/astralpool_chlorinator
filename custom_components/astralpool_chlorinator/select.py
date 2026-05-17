@@ -31,7 +31,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up Chlorinator from a config entry."""
     data: ChlorinatorData = hass.data[DOMAIN][entry.entry_id]
-    entities = [ChlorinatorModeSelect(data.coordinator), ChlorinatorSpeedSelect(data.coordinator)]
+    entities = [
+        ChlorinatorModeSelect(data.coordinator),
+        ChlorinatorSpeedSelect(data.coordinator),
+        ChlorinatorDefaultManualSpeedSelect(data.coordinator),
+    ]
     async_add_entities(entities)
 
 
@@ -73,7 +77,6 @@ class ChlorinatorModeSelect(
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option"""
-        action: chlorinator_parsers.ChlorinatorActions.NoAction
         if option == "Off":
             action = chlorinator_parsers.ChlorinatorActions.Off
         elif option == "Auto":
@@ -82,8 +85,8 @@ class ChlorinatorModeSelect(
             action = chlorinator_parsers.ChlorinatorActions.Manual
         else:
             action = chlorinator_parsers.ChlorinatorActions.NoAction
-
-        await self.coordinator.chlorinator.async_write_action(action)
+        async with self.coordinator._ble_lock:
+            await self.coordinator.chlorinator.async_write_action(action)
         await asyncio.sleep(2)
         await self.coordinator.async_request_refresh()
 
@@ -127,7 +130,6 @@ class ChlorinatorSpeedSelect(
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option"""
-        action: chlorinator_parsers.ChlorinatorActions.NoAction
         if option == "Low":
             action = chlorinator_parsers.ChlorinatorActions.Low
         elif option == "Medium":
@@ -136,7 +138,59 @@ class ChlorinatorSpeedSelect(
             action = chlorinator_parsers.ChlorinatorActions.High
         else:
             action = chlorinator_parsers.ChlorinatorActions.NoAction
+        async with self.coordinator._ble_lock:
+            await self.coordinator.chlorinator.async_write_action(action)
+        await asyncio.sleep(2)
+        await self.coordinator.async_request_refresh()
 
-        await self.coordinator.chlorinator.async_write_action(action)
+class ChlorinatorDefaultManualSpeedSelect(
+    CoordinatorEntity[ChlorinatorDataUpdateCoordinator], SelectEntity
+):
+    """Representation of a Chlorinator Default Manual Speed Select entity."""
+
+    _attr_icon = "mdi:speedometer"
+    _attr_options = ["Low", "Medium", "High"]
+    _attr_name = "Default Manual Speed"
+    _attr_unique_id = "pool01_default_manual_speed_select"
+
+    def __init__(
+        self,
+        coordinator: ChlorinatorDataUpdateCoordinator,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        return {
+            "identifiers": {(DOMAIN, "POOL01")},
+            "name": "POOL01",
+            "model": "Viron eQuilibrium",
+            "manufacturer": "Astral Pool",
+        }
+
+    @property
+    def current_option(self):
+        speed = self.coordinator.data.get("default_manual_on_speed")
+        if speed is chlorinator_parsers.SpeedLevels.Low:
+            return "Low"
+        elif speed is chlorinator_parsers.SpeedLevels.Medium:
+            return "Medium"
+        else:
+            return "High"
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the default manual speed."""
+        from pychlorinator.chlorinator_parsers import SpeedLevels
+        if option == "Low":
+            speed = SpeedLevels.Low
+        elif option == "Medium":
+            speed = SpeedLevels.Medium
+        else:
+            speed = SpeedLevels.High
+        async with self.coordinator._ble_lock:
+            await self.coordinator.chlorinator.async_write_setup(
+                default_manual_on_speed=speed
+            )
         await asyncio.sleep(2)
         await self.coordinator.async_request_refresh()

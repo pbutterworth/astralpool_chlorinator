@@ -20,7 +20,9 @@
 | --------------- | ------------------------------------------------------------------------- |
 | `binary_sensor` | Show something `True` or `False`.                                         |
 | `sensor`        | Show info from Astral Pool Viron eQuilibrium Chlorinator API.             |
-| `select`        | Control the chlorinator mode (off/auto/manual)                            |
+| `select`        | Control the chlorinator mode (off/auto/manual), pump speed, and default manual speed. |
+| `number`        | Set pH setpoint, chlorine output level (0-8 manual / ORP mV automatic), and acid dosing inhibit period. |
+| `button`        | Dismiss info message, disable/re-enable acid dosing, reset statistics, trigger cell reversal. |
 
 
 ## Installation
