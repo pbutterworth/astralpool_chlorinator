@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -20,7 +21,6 @@ from homeassistant.helpers.update_coordinator import (
 from .coordinator import ChlorinatorDataUpdateCoordinator
 from .models import ChlorinatorData
 from .const import DOMAIN
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,6 +97,86 @@ CHLORINATOR_SENSOR_TYPES: dict[str, SensorEntityDescription] = {
         device_class=SensorDeviceClass.ENUM,
         state_class=None,
     ),
+    "highest_ph_measured": SensorEntityDescription(
+        key="highest_ph_measured",
+        icon="mdi:ph",
+        name="Highest pH measured",
+        native_unit_of_measurement=None,
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "lowest_ph_measured": SensorEntityDescription(
+        key="lowest_ph_measured",
+        icon="mdi:ph",
+        name="Lowest pH measured",
+        native_unit_of_measurement=None,
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "highest_orp_measured": SensorEntityDescription(
+        key="highest_orp_measured",
+        icon="mdi:beaker-outline",
+        name="Highest ORP measured",
+        native_unit_of_measurement="mV",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "lowest_orp_measured": SensorEntityDescription(
+        key="lowest_orp_measured",
+        icon="mdi:beaker-outline",
+        name="Lowest ORP measured",
+        native_unit_of_measurement="mV",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "cell_reversal_count": SensorEntityDescription(
+        key="cell_reversal_count",
+        icon="mdi:swap-horizontal",
+        name="Cell reversal count",
+        native_unit_of_measurement=None,
+        device_class=None,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    "cell_running_time": SensorEntityDescription(
+        key="cell_running_time",
+        icon="mdi:timer-outline",
+        name="Cell running time",
+        native_unit_of_measurement="h",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    "low_salt_cell_running_time": SensorEntityDescription(
+        key="low_salt_cell_running_time",
+        icon="mdi:timer-alert-outline",
+        name="Low salt cell running time",
+        native_unit_of_measurement="h",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    "previous_days_cell_load": SensorEntityDescription(
+        key="previous_days_cell_load",
+        icon="mdi:chart-bar",
+        name="Previous day cell load",
+        native_unit_of_measurement="%",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "acid_dosing_inhibit_status": SensorEntityDescription(
+        key="acid_dosing_inhibit_status",
+        icon="mdi:beaker-off-outline",
+        name="Acid dosing inhibit status",
+        native_unit_of_measurement=None,
+        device_class=SensorDeviceClass.ENUM,
+        state_class=None,
+    ),
+    "acid_dosing_inhibit_time_remaining": SensorEntityDescription(
+        key="acid_dosing_inhibit_time_remaining",
+        icon="mdi:timer-outline",
+        name="Acid dosing inhibit time remaining",
+        native_unit_of_measurement="min",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 }
 
 
@@ -110,7 +190,6 @@ async def async_setup_entry(
     entities = [
         ChlorinatorSensor(data.coordinator, sensor_desc)
         for sensor_desc in CHLORINATOR_SENSOR_TYPES
-        # if sensorDesc in CHLORINATOR_SENSOR_TYPES
     ]
     async_add_entities(entities)
 
@@ -149,4 +228,7 @@ class ChlorinatorSensor(
 
     @property
     def native_value(self):
-        return self.coordinator.data.get(self._sensor)
+        value = self.coordinator.data.get(self._sensor)
+        if isinstance(value, timedelta):
+            return value.total_seconds() / 3600
+        return value

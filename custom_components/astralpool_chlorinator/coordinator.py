@@ -1,6 +1,7 @@
 """Data coordinator for receiving Chlorinator updates."""
 
 from datetime import timedelta
+import asyncio
 import logging
 from typing import Any
 
@@ -28,6 +29,7 @@ class ChlorinatorDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.data = {}
         self.chlorinator = chlorinator
+        self._ble_lock = asyncio.Lock()
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, "1234")},
             manufacturer="Astral Pool",
@@ -36,12 +38,13 @@ class ChlorinatorDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self):
         """Fetch data from API endpoint."""
-        try:
-            data = await self.chlorinator.async_gatherdata()
-        except Exception as exc:
-            _LOGGER.warning("Failed _gatherdata")
-            data = {}
-            raise UpdateFailed("Error communicating with API") from exc
-        if data != {}:
-            self.data = data
-        return self.data
+        async with self._ble_lock:
+            try:
+                data = await self.chlorinator.async_gatherdata()
+            except Exception as exc:
+                _LOGGER.warning("Failed _gatherdata: %s", exc, exc_info=True)
+                data = {}
+                raise UpdateFailed("Error communicating with API") from exc
+            if data != {}:
+                self.data = data
+            return self.data

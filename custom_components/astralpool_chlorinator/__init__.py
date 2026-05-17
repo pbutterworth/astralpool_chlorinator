@@ -17,7 +17,7 @@ from .const import DOMAIN
 from .coordinator import ChlorinatorDataUpdateCoordinator
 from .models import ChlorinatorData
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
 
 
