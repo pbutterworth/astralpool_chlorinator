@@ -19,6 +19,13 @@
   },
   "options": {
     "step": {
+      "init": {
+        "title": "Astral Pool Klorinator-alternativer",
+        "description": "Konfigurer hvor ofte integrasjonen kobler til via Bluetooth for å lese enhetsstatus. For lav verdi kan føre til tilkoblingsproblemer. Minimum {min_interval}s, maksimum {max_interval}s.",
+        "data": {
+          "poll_interval": "Avspørringsintervall (sekunder)"
+        }
+      },
       "user": {
         "data": {
           "binary_sensor": "Binær sensor aktivert",
