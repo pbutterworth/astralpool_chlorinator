@@ -82,16 +82,12 @@ class ChlorinatorPhSetpoint(
 class ChlorinatorChlorineSetpoint(
     CoordinatorEntity[ChlorinatorDataUpdateCoordinator], NumberEntity
 ):
-    """Number entity for chlorine output setpoint (manual mode, 0-8)."""
+    """Number entity for chlorine output setpoint — dynamic based on control mode."""
 
     _attr_icon = "mdi:beaker-check-outline"
     _attr_name = "Chlorine Output"
     _attr_unique_id = "pool01_chlorine_setpoint_number"
-    _attr_native_min_value = 0
-    _attr_native_max_value = 8
-    _attr_native_step = 1
     _attr_mode = NumberMode.SLIDER
-    _attr_native_unit_of_measurement = None
 
     def __init__(self, coordinator: ChlorinatorDataUpdateCoordinator) -> None:
         """Initialize the entity."""
@@ -102,7 +98,36 @@ class ChlorinatorChlorineSetpoint(
         return DEVICE_INFO
 
     @property
-    def native_value(self) -> int | None:
+    def _is_automatic(self) -> bool:
+        from pychlorinator.chlorinator_parsers import ChlorineControlTypes
+        return self.coordinator.data.get("chlorine_control_type") == ChlorineControlTypes.Automatic
+
+    @property
+    def native_min_value(self) -> float:
+        if self._is_automatic:
+            return float(self.coordinator.data.get("minimum_orp_setpoint", 200))
+        return 0
+
+    @property
+    def native_max_value(self) -> float:
+        if self._is_automatic:
+            return float(self.coordinator.data.get("maximum_orp_setpoint", 800))
+        return 8
+
+    @property
+    def native_step(self) -> float:
+        if self._is_automatic:
+            return 10
+        return 1
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if self._is_automatic:
+            return "mV"
+        return None
+
+    @property
+    def native_value(self) -> float | None:
         return self.coordinator.data.get("chlorine_control_setpoint")
 
     async def async_set_native_value(self, value: float) -> None:
