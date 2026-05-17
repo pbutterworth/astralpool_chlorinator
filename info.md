@@ -31,7 +31,7 @@
 
 ## Configuration is done in the UI
 
-<!---->
+After installation, the poll interval can be configured via **Settings → Integrations → Astral Pool → ⚙️ Configure**. Range: 10-300 seconds, default: 60 seconds. Setting too low may cause BLE connection issues.
 
 ## Credits
 
