@@ -15,8 +15,9 @@ from homeassistant.components.bluetooth import (
 )
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_ACCESS_TOKEN, CONF_ADDRESS
+from homeassistant.core import callback
 
-from .const import DOMAIN, LOCAL_NAMES
+from .const import DOMAIN, LOCAL_NAMES, CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._discovery_info: BluetoothServiceInfoBleak | None = None
         self._discovered_devices: dict[str, BluetoothServiceInfoBleak] = {}
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
+        """Get the options flow handler."""
+        return OptionsFlowHandler()
 
     async def async_step_bluetooth(
         self, discovery_info: BluetoothServiceInfoBleak
@@ -102,4 +111,34 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=data_schema,
             errors=errors,
+        )
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for Astral Pool Chlorinator."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle options flow."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_POLL_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
+                    ),
+                ): vol.All(int, vol.Range(min=10, max=300)),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=schema,
+            description_placeholders={
+                "min_interval": "10",
+                "max_interval": "300",
+            },
         )

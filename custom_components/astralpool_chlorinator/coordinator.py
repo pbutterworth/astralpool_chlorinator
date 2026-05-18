@@ -10,8 +10,9 @@ from pychlorinator.chlorinator import ChlorinatorAPI
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,15 +20,17 @@ _LOGGER = logging.getLogger(__name__)
 class ChlorinatorDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Data coordinator for getting Chlorinator updates."""
 
-    def __init__(self, hass: HomeAssistant, chlorinator: ChlorinatorAPI) -> None:
+    def __init__(self, hass: HomeAssistant, chlorinator: ChlorinatorAPI, entry: ConfigEntry) -> None:
         """Initialise the coordinator."""
+        poll_interval = entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=60),
+            update_interval=timedelta(seconds=poll_interval),
         )
         self.data = {}
+        self._entry = entry
         self.chlorinator = chlorinator
         self._ble_lock = asyncio.Lock()
         self.device_info = DeviceInfo(

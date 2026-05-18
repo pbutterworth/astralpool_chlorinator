@@ -19,6 +19,13 @@
   },
   "options": {
     "step": {
+      "init": {
+        "title": "Astral Pool Chlorinator Options",
+        "description": "Configure how frequently the integration connects via Bluetooth to read device state. Setting this too low may cause connection issues. Minimum {min_interval}s, maximum {max_interval}s.",
+        "data": {
+          "poll_interval": "Poll Interval (seconds)"
+        }
+      },
       "user": {
         "data": {
           "binary_sensor": "Binary sensor enabled",

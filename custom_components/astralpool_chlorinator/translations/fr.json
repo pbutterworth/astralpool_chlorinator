@@ -19,6 +19,13 @@
   },
   "options": {
     "step": {
+      "init": {
+        "title": "Options du chlorateur Astral Pool",
+        "description": "Configurez la fréquence à laquelle l'intégration se connecte via Bluetooth pour lire l'état de l'appareil. Un intervalle trop faible peut provoquer des problèmes de connexion. Minimum {min_interval}s, maximum {max_interval}s.",
+        "data": {
+          "poll_interval": "Intervalle d'interrogation (secondes)"
+        }
+      },
       "user": {
         "data": {
           "binary_sensor": "Capteur binaire activé",

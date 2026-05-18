@@ -37,7 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("async_setup_entry address:  %s accesscode %s", address, accesscode)
 
     chlorinator = ChlorinatorAPI(ble_device, accesscode)
-    coordinator = ChlorinatorDataUpdateCoordinator(hass, chlorinator)
+    coordinator = ChlorinatorDataUpdateCoordinator(hass, chlorinator, entry)
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = ChlorinatorData(
@@ -45,6 +45,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Add listener to reload entry when options change
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
 
@@ -56,3 +58,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             unload_ok = False
 
     return unload_ok
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload entry when options change."""
+    await hass.config_entries.async_reload(entry.entry_id)

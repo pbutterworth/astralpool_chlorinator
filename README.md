@@ -57,7 +57,12 @@ custom_components/astralpool_chlorinator/switch.py
 
 ## Configuration is done in the UI
 
-<!---->
+After installation, the poll interval can be configured via:
+**Settings → Integrations → Astral Pool → ⚙️ Configure**
+
+| Setting | Description | Default | Range |
+| ------- | ----------- | ------- | ----- |
+| Poll Interval (seconds) | How frequently the integration connects via Bluetooth to read device state. Setting too low may cause connection issues. | 60 | 10-300 |
 
 ## Credits
 
