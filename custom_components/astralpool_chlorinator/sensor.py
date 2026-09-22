@@ -177,6 +177,29 @@ CHLORINATOR_SENSOR_TYPES: dict[str, SensorEntityDescription] = {
         device_class=None,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    # pool_volume/spa_volume come from the Capabilities characteristic and
+    # were already being parsed into coordinator.data, just never exposed
+    # as entities. Note: the device reports these in whichever unit
+    # volume_units (also on the Capabilities characteristic, not currently
+    # surfaced here) indicates - litres, US gallons or imperial gallons -
+    # so native_unit_of_measurement is left unset rather than assuming
+    # litres for every installation.
+    "pool_volume": SensorEntityDescription(
+        key="pool_volume",
+        icon="mdi:pool",
+        name="Pool volume",
+        native_unit_of_measurement=None,
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "spa_volume": SensorEntityDescription(
+        key="spa_volume",
+        icon="mdi:hot-tub",
+        name="Spa volume",
+        native_unit_of_measurement=None,
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 }
 
 
